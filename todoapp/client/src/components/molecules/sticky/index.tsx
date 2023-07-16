@@ -12,9 +12,10 @@ import {
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 
 // Custom Card styled component with theme for Todo item
-const CustomCard = styled(Card)(({ theme }) => ({
+const CustomCard = styled(Card)(() => ({
   minWidth: 275,
   backgroundColor: "#FBF5EC",
+  height: "fit-content",
 }));
 
 interface StickyProps {

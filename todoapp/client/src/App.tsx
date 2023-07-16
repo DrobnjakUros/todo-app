@@ -1,7 +1,6 @@
-import { ThemeProvider, createTheme, Grid } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { ThemeProvider, createTheme } from "@mui/material";
 
-import { Sticky } from "./components/molecules/sticky";
+import { MainPage } from "./components/organisms";
 
 const toDoList: Todo[] = [
   { id: 1, title: "Buy milk", status: "New", priority: 5 },
@@ -17,18 +16,6 @@ const toDoList: Todo[] = [
   { id: 11, title: "Buy water", status: "New", priority: 4 },
 ];
 
-// Custom container styled component with theme for grid container
-const CustomGrid = styled(Grid)(({ theme }) => ({
-  backgroundColor: "#F2F7F7",
-  padding: "32px",
-  minHeight: "100vh",
-  flexDirection: "row",
-  gap: "32px",
-  "@media (max-width: 768px)": {
-    justifyContent: "center",
-  },
-}));
-
 function App() {
   const theme = createTheme({
     palette: {
@@ -43,11 +30,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <CustomGrid container>
-        {toDoList.map((item) => (
-          <Sticky item={item} key={item.id} />
-        ))}
-      </CustomGrid>
+      <MainPage toDoList={toDoList} />
     </ThemeProvider>
   );
 }
