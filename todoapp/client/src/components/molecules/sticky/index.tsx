@@ -40,6 +40,7 @@ export const Sticky: FC<StickyProps> = ({ item, onClick }) => {
             icon={<LocalFireDepartmentIcon />}
             emptyIcon={<LocalFireDepartmentIcon />}
             value={item.priority}
+            readOnly
           />
         </Typography>
       </CardContent>
