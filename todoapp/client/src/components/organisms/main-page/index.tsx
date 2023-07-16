@@ -24,6 +24,7 @@ const CustomGrid = styled(Grid)(() => ({
   minHeight: "100vh",
   flexDirection: "row",
   gap: "32px",
+  alignContent: "flex-start",
   "@media (max-width: 768px)": {
     justifyContent: "center",
   },
@@ -35,6 +36,7 @@ interface MainPageProps {
 
 export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const [searchText, setSearchText] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
@@ -59,6 +61,11 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
     handleSearch();
   }; // function to handle status change
 
+  const handleModalOpen = (edit: boolean) => {
+    setIsOpen(!isOpen);
+    setIsEdit(edit);
+  }; // function to handle modal open/close
+
   useEffect(() => {
     handleSearch();
   }, [searchText, selectedStatus]); // Run on selectedStatus and searchText change to filter todos
@@ -71,7 +78,7 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
             key={"Add Button"}
             variant="contained"
             color="primary"
-            onClick={() => setIsOpen(true)}
+            onClick={() => handleModalOpen(false)}
             endIcon={<AddIcon />}
           >
             Add Task
@@ -79,6 +86,7 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
         ]}
         centerSlot={[
           <TextField
+            key={"Search Input"}
             id="outlined-basic"
             label="Search"
             variant="outlined"
@@ -87,7 +95,7 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
           />,
         ]}
         rightSlot={[
-          <FormControl sx={{ width: "200px" }}>
+          <FormControl sx={{ width: "200px" }} key={"Status Select"}>
             <InputLabel id="status-select-label">Status</InputLabel>
             <Select
               labelId="status-select-label"
@@ -106,15 +114,17 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
       />
       <CustomGrid container>
         {filteredTodos.length > 0
-          ? filteredTodos.map((item) => <Sticky item={item} key={item.id} />)
+          ? filteredTodos.map((item) => (
+              <Sticky item={item} onClick={handleModalOpen} key={item.id} />
+            ))
           : null}
       </CustomGrid>
-      <MobileButton onClick={() => setIsOpen(true)} />
+      <MobileButton onClick={() => handleModalOpen(true)} />
       <ToDoModal
         open={isOpen}
         onClick={() => {}}
-        onClose={() => setIsOpen(false)}
-        edit={false}
+        onClose={() => handleModalOpen(false)}
+        edit={isEdit}
       />
     </>
   );

@@ -89,14 +89,26 @@ export const ToDoModal: FC<ToDoModalProps> = ({
             emptyIcon={<LocalFireDepartmentIcon />}
           />
         </Typography>
-        <Button
-          size="medium"
-          variant="contained"
-          color="primary"
-          onClick={onClick}
-        >
-          {edit ? "Edit" : "Add"}
-        </Button>
+        <Container sx={{ display: "flex", flexDirection: "row", justifyContent: edit ? "space-between" : "center" }}>
+          <Button
+            size="medium"
+            variant="contained"
+            color="primary"
+            onClick={onClick}
+          >
+            {edit ? "Edit" : "Add"}
+          </Button>
+          {edit && (
+            <Button
+              size="medium"
+              variant="outlined"
+              color="primary"
+              onClick={() => {}}
+            >
+              Delete
+            </Button>
+          )}
+        </Container>
       </CustomContainer>
     </Dialog>
   );

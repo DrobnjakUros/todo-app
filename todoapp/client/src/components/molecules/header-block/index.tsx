@@ -3,7 +3,6 @@ import { FC } from "react";
 import { Grid } from "@mui/material";
 import styled from "@emotion/styled";
 
-
 // Custom Grid styled component with theme for header
 const StyledGrid = styled(Grid, {
   shouldForwardProp: (prop) => prop !== "color" && prop !== "varaint",
@@ -31,7 +30,7 @@ export const HeaderBlock: FC<HeaderBlockProps> = ({
   return (
     <Grid
       container
-      spacing={2}
+      spacing={1}
       sx={{
         borderBottom: "1px solid #D7E1E4",
         margin: "0",
@@ -40,13 +39,13 @@ export const HeaderBlock: FC<HeaderBlockProps> = ({
         },
       }}
     >
-      <StyledGrid sm justifyContent="start">
+      <StyledGrid xs item justifyContent="start">
         {leftSlot}
       </StyledGrid>
-      <StyledGrid sm justifyContent="center">
+      <StyledGrid xs item justifyContent="center">
         {centerSlot}
       </StyledGrid>
-      <StyledGrid sm justifyContent="end">
+      <StyledGrid xs item justifyContent="end">
         {rightSlot}
       </StyledGrid>
     </Grid>
