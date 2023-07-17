@@ -1,4 +1,5 @@
 import { FC } from "react";
+import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { styled } from "@mui/material/styles";
 
 import {
@@ -14,6 +15,7 @@ import {
   Button,
 } from "@mui/material";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import axios from "axios";
 
 const CustomContainer = styled(Container)(() => ({
   padding: "32px 16px !important",
@@ -29,16 +31,41 @@ const CustomContainer = styled(Container)(() => ({
 interface ToDoModalProps {
   open: boolean;
   edit: boolean;
-  onClose: () => void;
-  onClick: () => void;
+  handleModalOpen: (open: boolean) => void;
 }
 
 export const ToDoModal: FC<ToDoModalProps> = ({
   open,
   edit,
-  onClose,
-  onClick,
+  handleModalOpen,
 }) => {
+  const { register, handleSubmit, control, reset } = useForm<Todo>();
+
+  const handleAddToDo = (data: Todo) => {
+    axios
+      .post("http://localhost:5050/todo", data)
+      .then(function () {
+        // handle success
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
+
+  const onSubmit: SubmitHandler<Todo> = (data: Todo) => {
+    edit ? handleAddToDo(data) : null;
+    onClose();
+  };
+
+  const onClose = () => {
+    handleModalOpen(false);
+    reset({
+      title: "",
+      status: "New",
+      priority: 0,
+    });
+  };
+
   return (
     <Dialog open={open} onClose={onClose}>
       <Container
@@ -54,62 +81,90 @@ export const ToDoModal: FC<ToDoModalProps> = ({
           {edit ? "Edit Task" : "Add Task"}
         </Typography>
       </Container>
-      <CustomContainer>
-        <TextField
-          id="outlined-basic"
-          label="Title"
-          variant="outlined"
-          fullWidth
-        />
-        <FormControl fullWidth>
-          <InputLabel id="status-select-label">Status</InputLabel>
-          <Select
-            labelId="status-select-label"
-            id="status-select"
-            label="Status"
-          >
-            <MenuItem value={"New"}>New</MenuItem>
-            <MenuItem value={"InProgress"}>In Progress</MenuItem>
-            <MenuItem value={"Done"}>Done</MenuItem>
-          </Select>
-        </FormControl>
-        <Typography
-          variant="body2"
-          color="secondary.main"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          Priority
-          <br />
-          <Rating
-            icon={<LocalFireDepartmentIcon />}
-            emptyIcon={<LocalFireDepartmentIcon />}
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CustomContainer>
+          <TextField
+            id="outlined-basic"
+            label="Title"
+            variant="outlined"
+            fullWidth
+            required
+            {...register("title", { required: true })}
           />
-        </Typography>
-        <Container sx={{ display: "flex", flexDirection: "row", justifyContent: edit ? "space-between" : "center" }}>
-          <Button
-            size="medium"
-            variant="contained"
-            color="primary"
-            onClick={onClick}
+          <FormControl fullWidth>
+            <InputLabel id="status-select-label" required>
+              Status
+            </InputLabel>
+            <Controller
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  labelId="status-select-label"
+                  id="status-select"
+                  label="Status"
+                  required
+                >
+                  <MenuItem value={"New"}>New</MenuItem>
+                  <MenuItem value={"InProgress"}>In Progress</MenuItem>
+                  <MenuItem value={"Done"}>Done</MenuItem>
+                </Select>
+              )}
+              name={"status"}
+              control={control}
+              defaultValue={"New"}
+            />
+          </FormControl>
+          <Typography
+            variant="body2"
+            color="secondary.main"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
+            }}
           >
-            {edit ? "Edit" : "Add"}
-          </Button>
-          {edit && (
+            Priority
+            <br />
+            <Controller
+              name="priority"
+              control={control}
+              defaultValue={0}
+              rules={{ required: true }}
+              render={({ field: { onChange, value } }) => (
+                <Rating
+                  name="priority"
+                  onChange={onChange}
+                  value={Number(value)}
+                  icon={<LocalFireDepartmentIcon />}
+                  emptyIcon={<LocalFireDepartmentIcon />}
+                />
+              )}
+            />
+          </Typography>
+
+          <Container
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: edit ? "space-between" : "center",
+            }}
+          >
             <Button
               size="medium"
-              variant="outlined"
+              variant="contained"
               color="primary"
-              onClick={() => {}}
+              type="submit"
             >
-              Delete
+              {edit ? "Edit" : "Add"}
             </Button>
-          )}
-        </Container>
-      </CustomContainer>
+            {edit && (
+              <Button size="medium" variant="outlined" color="primary">
+                Delete
+              </Button>
+            )}
+          </Container>
+        </CustomContainer>
+      </form>
     </Dialog>
   );
 };

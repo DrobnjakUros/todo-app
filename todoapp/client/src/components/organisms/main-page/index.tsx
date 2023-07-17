@@ -1,5 +1,7 @@
-import { FC, useState, ChangeEvent, useEffect } from "react";
+import { FC, useState, ChangeEvent, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { debounce } from "lodash";
+import axios from "axios";
 
 import {
   Grid,
@@ -9,10 +11,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 import AddIcon from "@mui/icons-material/Add";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import { HeaderBlock, Sticky, ToDoModal } from "../../molecules";
 import { MobileButton } from "../../atoms";
@@ -30,35 +35,38 @@ const CustomGrid = styled(Grid)(() => ({
   },
 }));
 
-interface MainPageProps {
-  toDoList: Todo[];
-}
+const PAGE_SIZE = 4;
 
-export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
+export const MainPage: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [searchText, setSearchText] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
-  const [filteredTodos, setFilteredTodos] = useState<Todo[]>([]);
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const handleSearch = debounce(() => {
-    const filtered = toDoList.filter(
+  const fetchData = async (): Promise<Todo[]> => {
+    const response = await axios.get("http://localhost:5050/todo");
+    return response.data;
+  }; // function to fetch data from server
+
+  const { data } = useQuery<Todo[]>(["data"], fetchData); // fetch data from server
+
+  const filteredData = useMemo(() => {
+    return data?.filter(
       (todo) =>
         todo.title.toLowerCase().includes(searchText.toLowerCase()) &&
         (selectedStatus === "All" || todo.status === selectedStatus)
     );
-    setFilteredTodos(filtered);
-  }, 100); // Debounce delay of 100 milliseconds
+  }, [data, searchText, selectedStatus]); // memoized filtered data
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = debounce((e: ChangeEvent<HTMLInputElement>) => {
     const searchText = e.target.value;
     setSearchText(searchText);
-  }; // function to handle search input change
+  }, 100); // function to handle search input change with debounce
 
   const handleStatusChange = (e: any) => {
     const category = e.target.value;
     setSelectedStatus(category);
-    handleSearch();
   }; // function to handle status change
 
   const handleModalOpen = (edit: boolean) => {
@@ -66,9 +74,19 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
     setIsEdit(edit);
   }; // function to handle modal open/close
 
-  useEffect(() => {
-    handleSearch();
-  }, [searchText, selectedStatus]); // Run on selectedStatus and searchText change to filter todos
+  // Pagination logic
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const totalTodos = filteredData?.length ?? 0;
+  const totalPages = Math.ceil(totalTodos / PAGE_SIZE);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const paginatedData = useMemo(() => {
+    return filteredData?.slice(startIndex, endIndex);
+  }, [data, searchText, selectedStatus, currentPage]); // memoized filtered data
 
   return (
     <>
@@ -85,6 +103,13 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
           </Button>,
         ]}
         centerSlot={[
+          <IconButton
+            key={"Previous Page"}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ArrowBackIosIcon />
+          </IconButton>,
           <TextField
             key={"Search Input"}
             id="outlined-basic"
@@ -93,6 +118,13 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
             fullWidth
             onChange={handleInputChange}
           />,
+          <IconButton
+            key={"Next Page"}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ArrowForwardIosIcon />
+          </IconButton>,
         ]}
         rightSlot={[
           <FormControl sx={{ width: "200px" }} key={"Status Select"}>
@@ -113,17 +145,14 @@ export const MainPage: FC<MainPageProps> = ({ toDoList }) => {
         ]}
       />
       <CustomGrid container>
-        {filteredTodos.length > 0
-          ? filteredTodos.map((item) => (
-              <Sticky item={item} onClick={handleModalOpen} key={item.id} />
-            ))
-          : null}
+        {paginatedData?.map((item) => (
+          <Sticky item={item} onClick={handleModalOpen} key={item._id} />
+        ))}
       </CustomGrid>
       <MobileButton onClick={() => handleModalOpen(true)} />
       <ToDoModal
         open={isOpen}
-        onClick={() => {}}
-        onClose={() => handleModalOpen(false)}
+        handleModalOpen={handleModalOpen}
         edit={isEdit}
       />
     </>
