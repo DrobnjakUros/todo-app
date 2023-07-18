@@ -1,7 +1,5 @@
 import { FC, useState, ChangeEvent, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { debounce } from "lodash";
-import axios from "axios";
 
 import {
   Grid,
@@ -19,8 +17,14 @@ import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-import { HeaderBlock, Sticky, ToDoModal } from "../../molecules";
+import {
+  HeaderBlock,
+  MobileHeaderBlock,
+  Sticky,
+  ToDoModal,
+} from "../../molecules";
 import { MobileButton } from "../../atoms";
+import { useGetAllTodosQuery } from "../../../store/todoSlice";
 
 // Custom container styled component with theme for grid container
 const CustomGrid = styled(Grid)(() => ({
@@ -35,21 +39,17 @@ const CustomGrid = styled(Grid)(() => ({
   },
 }));
 
-const PAGE_SIZE = 4;
+const PAGE_SIZE = 10;
 
 export const MainPage: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [activeTodo, setActiveTodo] = useState<Todo | null>(null); // active todo for edit
   const [searchText, setSearchText] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const fetchData = async (): Promise<Todo[]> => {
-    const response = await axios.get("http://localhost:5050/todo");
-    return response.data;
-  }; // function to fetch data from server
-
-  const { data } = useQuery<Todo[]>(["data"], fetchData); // fetch data from server
+  const { data } = useGetAllTodosQuery(); // fetch data from server
 
   const filteredData = useMemo(() => {
     return data?.filter(
@@ -69,9 +69,10 @@ export const MainPage: FC = () => {
     setSelectedStatus(category);
   }; // function to handle status change
 
-  const handleModalOpen = (edit: boolean) => {
+  const handleModalOpen = (edit: boolean, todo: Todo | null) => {
     setIsOpen(!isOpen);
     setIsEdit(edit);
+    setActiveTodo(todo);
   }; // function to handle modal open/close
 
   // Pagination logic
@@ -96,7 +97,7 @@ export const MainPage: FC = () => {
             key={"Add Button"}
             variant="contained"
             color="primary"
-            onClick={() => handleModalOpen(false)}
+            onClick={() => handleModalOpen(false, null)}
             endIcon={<AddIcon />}
           >
             Add Task
@@ -144,16 +145,37 @@ export const MainPage: FC = () => {
           </FormControl>,
         ]}
       />
+      <MobileHeaderBlock
+        leftSlot={[
+          <IconButton
+            key={"Previous Page mobile"}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <ArrowBackIosIcon />
+          </IconButton>,
+        ]}
+        rightSlot={[
+          <IconButton
+            key={"Next Page mobile"}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <ArrowForwardIosIcon />
+          </IconButton>,
+        ]}
+      />
       <CustomGrid container>
         {paginatedData?.map((item) => (
           <Sticky item={item} onClick={handleModalOpen} key={item._id} />
         ))}
       </CustomGrid>
-      <MobileButton onClick={() => handleModalOpen(true)} />
+      <MobileButton onClick={() => handleModalOpen(false, null)} />
       <ToDoModal
         open={isOpen}
         handleModalOpen={handleModalOpen}
         edit={isEdit}
+        activeTodo={activeTodo}
       />
     </>
   );

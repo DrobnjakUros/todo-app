@@ -1,11 +1,16 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
+import { useState } from "react";
+import { Provider } from "react-redux";
 import { ThemeProvider, createTheme } from "@mui/material";
 
-import { MainPage } from "./components/organisms";
+import { store } from "./store/store";
+
+import { MainPage, LoginPage } from "./components/organisms";
+
 
 function App() {
-  const queryClient = new QueryClient();
+  const [token, setToken] = useState<string | null>(
+    localStorage.getItem("token")
+  );
 
   const theme = createTheme({
     palette: {
@@ -19,11 +24,11 @@ function App() {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
       <ThemeProvider theme={theme}>
-        <MainPage />
+        {!token ? <LoginPage setToken={setToken} /> : <MainPage />}
       </ThemeProvider>
-    </QueryClientProvider>
+    </Provider>
   );
 }
 

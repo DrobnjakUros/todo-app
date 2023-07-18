@@ -21,7 +21,7 @@ const CustomCard = styled(Card)(() => ({
 
 interface StickyProps {
   item: Todo;
-  onClick: (edit: boolean) => void;
+  onClick: (edit: boolean, todo: Todo) => void;
 }
 
 export const Sticky: FC<StickyProps> = ({ item, onClick }) => {
@@ -46,7 +46,7 @@ export const Sticky: FC<StickyProps> = ({ item, onClick }) => {
         </Typography>
       </CardContent>
       <CardActions sx={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button onClick={() => onClick(true)} size="small">
+        <Button onClick={() => onClick(true, item)} size="small">
           Edit
         </Button>
       </CardActions>

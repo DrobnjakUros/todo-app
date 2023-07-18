@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { styled } from "@mui/material/styles";
 
@@ -15,7 +15,12 @@ import {
   Button,
 } from "@mui/material";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
-import axios from "axios";
+
+import {
+  useAddTodoMutation,
+  useDeleteTodoMutation,
+  useEditTodoMutation,
+} from "../../../store/todoSlice";
 
 const CustomContainer = styled(Container)(() => ({
   padding: "32px 16px !important",
@@ -31,40 +36,84 @@ const CustomContainer = styled(Container)(() => ({
 interface ToDoModalProps {
   open: boolean;
   edit: boolean;
-  handleModalOpen: (open: boolean) => void;
+  handleModalOpen: (open: boolean, todo: null) => void;
+  activeTodo: Todo | null;
 }
 
 export const ToDoModal: FC<ToDoModalProps> = ({
   open,
   edit,
   handleModalOpen,
+  activeTodo,
 }) => {
-  const { register, handleSubmit, control, reset } = useForm<Todo>();
+  const { register, handleSubmit, control, reset, setValue } = useForm<Todo>();
 
-  const handleAddToDo = (data: Todo) => {
-    axios
-      .post("http://localhost:5050/todo", data)
-      .then(function () {
-        // handle success
-      })
-      .catch(function (error) {
+  const [saveTodoData] = useAddTodoMutation();
+
+  const [editTodoData] = useEditTodoMutation();
+
+  const [deleteTododata] = useDeleteTodoMutation();
+
+  const handleAddToDo = async (data: Todo) => {
+    try {
+      await saveTodoData(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleEditToDo = async (data: Todo) => {
+    if (activeTodo) {
+      const finalData = {
+        ...data,
+        _id: activeTodo._id,
+      };
+      try {
+        await editTodoData(finalData);
+      } catch (error) {
         console.log(error);
-      });
+      }
+    }
+  };
+
+  const handleDeleteToDo = async () => {
+    if (activeTodo) {
+      try {
+        await deleteTododata(activeTodo._id);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    onClose();
   };
 
   const onSubmit: SubmitHandler<Todo> = (data: Todo) => {
-    edit ? handleAddToDo(data) : null;
+    edit ? handleEditToDo(data) : handleAddToDo(data);
     onClose();
   };
 
   const onClose = () => {
-    handleModalOpen(false);
+    handleModalOpen(false, null);
     reset({
       title: "",
       status: "New",
       priority: 0,
     });
   };
+
+  useEffect(() => {
+    if (edit && activeTodo) {
+      setValue("title", activeTodo.title);
+      setValue("status", activeTodo.status);
+      setValue("priority", activeTodo.priority);
+    } else {
+      reset({
+        title: "",
+        status: "New",
+        priority: 0,
+      });
+    }
+  }, [activeTodo]);
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -158,7 +207,12 @@ export const ToDoModal: FC<ToDoModalProps> = ({
               {edit ? "Edit" : "Add"}
             </Button>
             {edit && (
-              <Button size="medium" variant="outlined" color="primary">
+              <Button
+                size="medium"
+                variant="outlined"
+                color="primary"
+                onClick={handleDeleteToDo}
+              >
                 Delete
               </Button>
             )}
