@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
-import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 import {
   Container,
@@ -16,28 +16,20 @@ import {
 } from "@mui/material";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 
+import { StyledContainer } from "./todo-modal.style";
+
 import {
   useAddTodoMutation,
   useDeleteTodoMutation,
   useEditTodoMutation,
 } from "../../../store/todoSlice";
 
-const CustomContainer = styled(Container)(() => ({
-  padding: "32px 16px !important",
-  borderBottom: "1px solid #D7E1E4",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "16px",
-  minWidth: "400px",
-}));
-
 interface ToDoModalProps {
   open: boolean;
   edit: boolean;
   handleModalOpen: (open: boolean, todo: null) => void;
   activeTodo: Todo | null;
+  setToken: (token: string | null) => void;
 }
 
 export const ToDoModal: FC<ToDoModalProps> = ({
@@ -45,14 +37,36 @@ export const ToDoModal: FC<ToDoModalProps> = ({
   edit,
   handleModalOpen,
   activeTodo,
+  setToken
 }) => {
   const { register, handleSubmit, control, reset, setValue } = useForm<Todo>();
 
-  const [saveTodoData] = useAddTodoMutation();
+  const navigate = useNavigate();
 
-  const [editTodoData] = useEditTodoMutation();
+  const [saveTodoData, { error: addError }] = useAddTodoMutation();
 
-  const [deleteTododata] = useDeleteTodoMutation();
+  const [editTodoData, { error: editError }] = useEditTodoMutation();
+
+  const [deleteTododata, { error: deleteError }] = useDeleteTodoMutation();
+
+  // Error handling for unauthorized access
+  if (addError && "status" in addError && addError?.status === 401) {
+    sessionStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
+  }
+
+  if (editError && "status" in editError && editError?.status === 401) {
+    sessionStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
+  }
+
+  if (deleteError && "status" in deleteError && deleteError?.status === 401) {
+    sessionStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
+  }
 
   const handleAddToDo = async (data: Todo) => {
     try {
@@ -87,11 +101,6 @@ export const ToDoModal: FC<ToDoModalProps> = ({
     onClose();
   };
 
-  const onSubmit: SubmitHandler<Todo> = (data: Todo) => {
-    edit ? handleEditToDo(data) : handleAddToDo(data);
-    onClose();
-  };
-
   const onClose = () => {
     handleModalOpen(false, null);
     reset({
@@ -99,6 +108,11 @@ export const ToDoModal: FC<ToDoModalProps> = ({
       status: "New",
       priority: 0,
     });
+  };
+
+  const onSubmit: SubmitHandler<Todo> = (data: Todo) => {
+    edit ? handleEditToDo(data) : handleAddToDo(data);
+    onClose();
   };
 
   useEffect(() => {
@@ -131,7 +145,7 @@ export const ToDoModal: FC<ToDoModalProps> = ({
         </Typography>
       </Container>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CustomContainer>
+        <StyledContainer>
           <TextField
             id="outlined-basic"
             label="Title"
@@ -217,7 +231,7 @@ export const ToDoModal: FC<ToDoModalProps> = ({
               </Button>
             )}
           </Container>
-        </CustomContainer>
+        </StyledContainer>
       </form>
     </Dialog>
   );

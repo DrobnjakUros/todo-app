@@ -1,20 +1,8 @@
 import { FC } from "react";
 
 import { Grid } from "@mui/material";
-import styled from "@emotion/styled";
 
-// Custom Grid styled component with theme for header
-const StyledGrid = styled(Grid, {
-  shouldForwardProp: (prop) => prop !== "color" && prop !== "varaint",
-})(() => ({
-  display: "flex",
-  alignItems: "center",
-  gap: "8px",
-  padding: "16px 32px",
-  ":empty": {
-    display: "none",
-  },
-}));
+import { StyledGrid } from './header-block.style';
 
 interface HeaderBlockProps {
   leftSlot?: JSX.Element[];

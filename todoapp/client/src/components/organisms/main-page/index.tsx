@@ -1,8 +1,8 @@
 import { FC, useState, ChangeEvent, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { debounce } from "lodash";
 
 import {
-  Grid,
   Button,
   TextField,
   FormControl,
@@ -11,11 +11,12 @@ import {
   MenuItem,
   IconButton,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+
+import { StyledGrid } from './main-page.style';
 
 import {
   HeaderBlock,
@@ -26,22 +27,13 @@ import {
 import { MobileButton } from "../../atoms";
 import { useGetAllTodosQuery } from "../../../store/todoSlice";
 
-// Custom container styled component with theme for grid container
-const CustomGrid = styled(Grid)(() => ({
-  backgroundColor: "#F2F7F7",
-  padding: "32px",
-  minHeight: "100vh",
-  flexDirection: "row",
-  gap: "32px",
-  alignContent: "flex-start",
-  "@media (max-width: 768px)": {
-    justifyContent: "center",
-  },
-}));
+import { PAGE_SIZE } from "./main-page.constants";
 
-const PAGE_SIZE = 10;
+interface MainPageProps {
+  setToken: (token: string | null) => void;
+}
 
-export const MainPage: FC = () => {
+export const MainPage: FC<MainPageProps> = ({setToken}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [activeTodo, setActiveTodo] = useState<Todo | null>(null); // active todo for edit
@@ -49,31 +41,45 @@ export const MainPage: FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const { data } = useGetAllTodosQuery(); // fetch data from server
 
+  const navigate = useNavigate();
+
+  const { data, error } = useGetAllTodosQuery(); // fetch data from server
+
+  // Authorization error handling
+  if (error && "status" in error && error?.status === 401) {
+    sessionStorage.removeItem("token");
+    setToken(null);
+    navigate("/login");
+  }
+
+  // Memoized filtered data
   const filteredData = useMemo(() => {
     return data?.filter(
       (todo) =>
         todo.title.toLowerCase().includes(searchText.toLowerCase()) &&
         (selectedStatus === "All" || todo.status === selectedStatus)
     );
-  }, [data, searchText, selectedStatus]); // memoized filtered data
+  }, [data, searchText, selectedStatus]); 
 
+  // Function to handle search input change with debounce
   const handleInputChange = debounce((e: ChangeEvent<HTMLInputElement>) => {
     const searchText = e.target.value;
     setSearchText(searchText);
-  }, 100); // function to handle search input change with debounce
+  }, 100); 
 
+  // Function to handle status change
   const handleStatusChange = (e: any) => {
     const category = e.target.value;
     setSelectedStatus(category);
-  }; // function to handle status change
+  }; 
 
+  // Function to handle modal open/close
   const handleModalOpen = (edit: boolean, todo: Todo | null) => {
     setIsOpen(!isOpen);
     setIsEdit(edit);
     setActiveTodo(todo);
-  }; // function to handle modal open/close
+  }; 
 
   // Pagination logic
   const startIndex = (currentPage - 1) * PAGE_SIZE;
@@ -165,17 +171,18 @@ export const MainPage: FC = () => {
           </IconButton>,
         ]}
       />
-      <CustomGrid container>
+      <StyledGrid container>
         {paginatedData?.map((item) => (
           <Sticky item={item} onClick={handleModalOpen} key={item._id} />
         ))}
-      </CustomGrid>
+      </StyledGrid>
       <MobileButton onClick={() => handleModalOpen(false, null)} />
       <ToDoModal
         open={isOpen}
         handleModalOpen={handleModalOpen}
         edit={isEdit}
         activeTodo={activeTodo}
+        setToken={setToken}
       />
     </>
   );

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Todo, TodoPriority, TodoStatus } from "../types";
+import { Todo, TodoStatus } from "../types";
 
 const todoSchema = new mongoose.Schema<Todo>({
     title: String,

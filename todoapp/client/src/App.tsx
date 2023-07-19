@@ -1,15 +1,24 @@
-import { useState } from "react";
+import { useState, useContext, createContext } from "react";
 import { Provider } from "react-redux";
 import { ThemeProvider, createTheme } from "@mui/material";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { store } from "./store/store";
 
 import { MainPage, LoginPage } from "./components/organisms";
 
+type TokenContextType = string | null;
+
+export const TokenContext = createContext<TokenContextType>(null);
+
+const ProtectedRoute = ({ element }: any) => {
+  const token = useContext<TokenContextType>(TokenContext);
+  return token ? element : <Navigate to="/login" />;
+};
 
 function App() {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    sessionStorage.getItem("token")
   );
 
   const theme = createTheme({
@@ -25,9 +34,19 @@ function App() {
 
   return (
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        {!token ? <LoginPage setToken={setToken} /> : <MainPage />}
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider theme={theme}>
+          <TokenContext.Provider value={token}>
+            <Routes>
+              <Route
+                path="/"
+                element={<ProtectedRoute element={<MainPage setToken={setToken}/>} />}
+              />
+              <Route path="/login" element={<LoginPage setToken={setToken} />} />
+            </Routes>
+          </TokenContext.Provider>
+        </ThemeProvider>
+      </BrowserRouter>
     </Provider>
   );
 }

@@ -11,7 +11,7 @@ export const todoApi = createApi({
         url: "/todo",
         method: "GET",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
       }),
       providesTags: ["Todo"],
@@ -21,7 +21,7 @@ export const todoApi = createApi({
         url: "/todo",
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body,
       }),
@@ -32,18 +32,18 @@ export const todoApi = createApi({
         url: `/todo?todoId=${body._id}`,
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
         body,
       }),
       invalidatesTags: ["Todo"],
     }),
-    deleteTodo: builder.mutation<{ success: boolean; id: number }, number>({
+    deleteTodo: builder.mutation<{ success: boolean; id: string }, string>({
       query: (id) => ({
         url: `/todo?todoId=${id}`,
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
         },
       }),
       invalidatesTags: ["Todo"],

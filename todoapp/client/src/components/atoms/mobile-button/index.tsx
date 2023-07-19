@@ -1,21 +1,11 @@
 import { FC } from "react";
 
-import { styled } from "@mui/material/styles";
-import { Container, Button } from "@mui/material";
+
+import { Button } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
 
-// Custom container styled component with theme for mobile button
-const CustomContainer = styled(Container)(() => ({
-  padding: "0px !important",
-  width: "100%",
-  position: "fixed",
-  bottom: 0,
-  left: 0,
-  "@media (min-width: 769px)": {
-    display: "none",
-  },
-}));
+import { StyledContainer } from "./mobile-button.style";
 
 interface MobileButtonProps {
   onClick?: () => void;
@@ -23,7 +13,7 @@ interface MobileButtonProps {
 
 export const MobileButton: FC<MobileButtonProps> = ({ onClick }) => {
   return (
-    <CustomContainer>
+    <StyledContainer>
       <Button
         variant="contained"
         color="primary"
@@ -33,6 +23,6 @@ export const MobileButton: FC<MobileButtonProps> = ({ onClick }) => {
       >
         Add Task
       </Button>
-    </CustomContainer>
+    </StyledContainer>
   );
 };

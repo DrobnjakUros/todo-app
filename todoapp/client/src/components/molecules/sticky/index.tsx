@@ -1,9 +1,7 @@
 import { FC } from "react";
-import { styled } from "@mui/material/styles";
 
 import {
   Typography,
-  Card,
   CardActions,
   CardContent,
   Rating,
@@ -11,13 +9,7 @@ import {
 } from "@mui/material";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 
-// Custom Card styled component with theme for Todo item
-const CustomCard = styled(Card)(() => ({
-  minWidth: 275,
-  minHeight: 215,
-  backgroundColor: "#FBF5EC",
-  height: "fit-content",
-}));
+import { StyledCard } from "./sticky.style";
 
 interface StickyProps {
   item: Todo;
@@ -26,7 +18,7 @@ interface StickyProps {
 
 export const Sticky: FC<StickyProps> = ({ item, onClick }) => {
   return (
-    <CustomCard>
+    <StyledCard>
       <CardContent>
         <Typography sx={{ fontSize: 20 }} color="primary.main" gutterBottom>
           {item.title}
@@ -50,6 +42,6 @@ export const Sticky: FC<StickyProps> = ({ item, onClick }) => {
           Edit
         </Button>
       </CardActions>
-    </CustomCard>
+    </StyledCard>
   );
 };

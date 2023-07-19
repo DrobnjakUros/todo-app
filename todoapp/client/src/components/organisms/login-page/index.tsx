@@ -1,28 +1,21 @@
 import { FC, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 import { Container, TextField, Button, Grid, Typography } from "@mui/material";
 
+import { StyledContainer } from "./login-page.style";
+
 import { useLoginUserMutation } from "../../../store/todoSlice";
 
-const CustomContainer = styled(Container)(() => ({
-  padding: "32px 16px !important",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "16px",
-  minWidth: "400px",
-}));
-
 interface LoginPageProps {
-  setToken: (token: string) => void;
+  setToken: (token: string | null) => void;
 }
 
 export const LoginPage: FC<LoginPageProps> = ({ setToken }) => {
   const [error, setError] = useState<string>("");
   const { register, handleSubmit } = useForm<User>();
+  const navigate = useNavigate();
 
   const [handleLoginUser] = useLoginUserMutation();
 
@@ -30,9 +23,10 @@ export const LoginPage: FC<LoginPageProps> = ({ setToken }) => {
     handleLoginUser(data)
       .unwrap()
       .then((res) => {
-        localStorage.setItem("token", res.token);
+        sessionStorage.setItem("token", res.token);
         setToken(res.token);
         setError("");
+        navigate("/");
       })
       .catch((error) => {
         console.log(error);
@@ -50,10 +44,10 @@ export const LoginPage: FC<LoginPageProps> = ({ setToken }) => {
       }}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        <CustomContainer>
+        <StyledContainer>
           <TextField
             id="outlined-basic"
-            label="Title"
+            label="Username"
             variant="outlined"
             fullWidth
             required
@@ -61,7 +55,7 @@ export const LoginPage: FC<LoginPageProps> = ({ setToken }) => {
           />
           <TextField
             id="outlined-basic"
-            label="Title"
+            label="Password"
             variant="outlined"
             fullWidth
             required
@@ -79,7 +73,7 @@ export const LoginPage: FC<LoginPageProps> = ({ setToken }) => {
             </Button>
           </Container>
           {error !== "" && <Typography color="error">{error}</Typography>}
-        </CustomContainer>
+        </StyledContainer>
       </form>
     </Grid>
   );

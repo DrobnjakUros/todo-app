@@ -14,7 +14,7 @@ router.post("/api/login", async (req: Request, res: Response) => {
   // Move user data to database
   if (user === "admin" || password === "password") {
     const token = jwt.sign({ password }, JWT_SECRET, {
-      expiresIn: "1h",
+      expiresIn: "24h",
     });
     res.json({
       token,
