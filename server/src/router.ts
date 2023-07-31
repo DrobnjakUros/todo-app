@@ -12,7 +12,7 @@ const router = express.Router();
 router.post("/api/login", async (req: Request, res: Response) => {
   const { user, password } = req.body;
   // Move user data to database
-  if (user === "admin" || password === "password") {
+  if (user === "admin" && password === "password") {
     const token = jwt.sign({ password }, JWT_SECRET, {
       expiresIn: "24h",
     });
