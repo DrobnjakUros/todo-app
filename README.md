@@ -16,10 +16,6 @@ Before running the application, make sure you have the following installed on yo
 1. Open a terminal and navigate to the `server` directory: `cd server`.
 2. Install the server dependencies: `npm install`.
 
-Login into MongoAtlas online with these credentials to add your IP address
-DB_USERNAME=uros.drobnjak@outlook.com
-DB_PASSWORD=k39lqyM6!BEO
-
 Start the server: npm run dev.
 The server should be running on http://localhost:5050.
 
